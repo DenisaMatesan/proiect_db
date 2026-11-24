@@ -1,2 +1,0 @@
-# proiect_db
-

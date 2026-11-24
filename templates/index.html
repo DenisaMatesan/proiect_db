@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delice Pâtisserie - Laborator Artizanal</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧁</text></svg>">
+</head>
+<body>
+
+    <!-- ====================================================================
+         ANTET APLICAȚIE (NAVBAR)
+         ==================================================================== -->
+    <header class="app-header" id="appHeader" style="display: none;">
+        <div class="header-container">
+            <a href="#" class="brand-wrapper" onclick="window.location.reload();">
+                <div class="brand-icon">🧁</div>
+                <div>
+                    <span class="brand-title font-serif">Delice Pâtisserie</span>
+                    <span class="brand-subtitle">Laborator de Cofetărie & Patiserie Artizanală</span>
+                </div>
+            </a>
+
+            <!-- Navigare Dinamica pe Rol -->
+            <nav class="header-nav" id="roleNavigation">
+                <!-- Populata dinamic prin JS in functie de rol -->
+            </nav>
+
+            <!-- Profil Utilizator si Deconectare -->
+            <div class="user-profile-widget">
+                <div class="user-avatar" id="navAvatar">D</div>
+                <div class="user-info-text">
+                    <div class="user-username" id="navUsername">utilizator.rol</div>
+                    <div class="user-role-badge" id="navRole">Rol</div>
+                </div>
+                <button class="logout-btn" onclick="DeliceApp.logout()">
+                    <span>🚪</span> Deconectare
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ====================================================================
+         ECRAN DE AUTENTIFICARE CLASICĂ (FEMININ ROZ PUDRĂ)
+         ==================================================================== -->
+    <div class="login-page-container" id="loginSection">
+        <div class="login-card">
+            <div class="login-brand-icon">🍰</div>
+            <h1 class="login-title font-serif">Delice Pâtisserie</h1>
+            <p class="login-subtitle">Autentificare în sistemul laboratorului artizanal</p>
+
+            <div id="loginAlertBox" style="display: none;" class="alert-box alert-danger"></div>
+
+            <form onsubmit="DeliceApp.handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label" for="loginUsername">Nume de utilizator (format nume.rol)</label>
+                    <input type="text" id="loginUsername" class="form-input" placeholder="ex: elena.admin" required autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Parolă</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn-primary-delice">
+                    Intră în Aplicație ✨
+                </button>
+            </form>
+
+            <div class="login-helpers">
+                <div class="login-helpers-title">Conturi demonstrative gata de utilizat:</div>
+                <div class="quick-user-chips">
+                    <button type="button" class="user-chip-btn" onclick="DeliceApp.fillLogin('elena.admin', 'admin123')">
+                        👩‍💼 elena.admin (Admin)
+                    </button>
+                    <button type="button" class="user-chip-btn" onclick="DeliceApp.fillLogin('mihai.cofetar', 'cofetar123')">
+                        👨‍🍳 mihai.cofetar (Cofetar)
+                    </button>
+                    <button type="button" class="user-chip-btn" onclick="DeliceApp.fillLogin('ana.vanzator', 'vanzator123')">
+                        🧑‍💼 ana.vanzator (Vânzător)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         CONTAINERUL PRINCIPAL AL APLICAȚIEI (DUPĂ AUTENTIFICARE)
+         ==================================================================== -->
+    <main class="main-content" id="appMainContent" style="display: none;">
+
+        <div id="globalNotification" style="display: none;"></div>
+
+        <!-- ================================================================
+             1. ECRAN ADMINISTRATOR: DASHBOARD, STOCURI, APROBARE AI & RAPOARTE
+             ================================================================ -->
+        <section id="adminView" class="view-section">
+            <div class="page-intro-header">
+                <div>
+                    <h2 class="page-intro-title font-serif">Panoul de Control al Administratorului</h2>
+                    <p class="page-intro-desc">Monitorizare stocuri critice, recepție loturi de la furnizori, aprobare rețete AI și rapoarte financiare.</p>
+                </div>
+                <button class="btn-delice-sm btn-delice-primary" onclick="DeliceApp.openReceptieModal()">
+                    ➕ Recepționează Lot Nou
+                </button>
+            </div>
+
+            <!-- Indicatori Cheie (KPI) -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-icon-box kpi-icon-danger">⚠️</div>
+                    <div>
+                        <div class="kpi-value" id="kpiCritice">0</div>
+                        <div class="kpi-label">Ingrediente sub prag minim</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-box kpi-icon-warning">⏳</div>
+                    <div>
+                        <div class="kpi-value" id="kpiExpirabile">0</div>
+                        <div class="kpi-label">Loturi ce expiră în 7 zile</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-box kpi-icon-gold">💰</div>
+                    <div>
+                        <div class="kpi-value" id="kpiVenit">0.00 lei</div>
+                        <div class="kpi-label">Total Vânzări Încasate</div>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-box kpi-icon-pink">🤖</div>
+                    <div>
+                        <div class="kpi-value" id="kpiReteteAI">0</div>
+                        <div class="kpi-label">Rețete AI în așteptare</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab-uri interne Administrator -->
+            <div class="card-delice">
+                <div class="card-header-delice">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="nav-pill-btn active" id="btnAdminTabAlerte" onclick="DeliceApp.switchAdminTab('alerte')">🔔 Alerte & Stocuri Critice</button>
+                        <button class="nav-pill-btn" id="btnAdminTabCatalog" onclick="DeliceApp.switchAdminTab('catalog')">📦 Toate Ingredientele & Loturi</button>
+                        <button class="nav-pill-btn" id="btnAdminTabAI" onclick="DeliceApp.switchAdminTab('ai')">✨ Aprobare Rețete AI</button>
+                        <button class="nav-pill-btn" id="btnAdminTabRapoarte" onclick="DeliceApp.switchAdminTab('rapoarte')">📊 Rapoarte & Interogări (20)</button>
+                    </div>
+                </div>
+
+                <!-- Sub-panou 1: Alerte & Stocuri Critice -->
+                <div id="adminSubAlerte">
+                    <h3 class="font-serif" style="margin-bottom: 1rem; color: var(--danger);">🚨 1.1. Stocuri Critice (Sub Pragul Minim de Aprovizionare)</h3>
+                    <div style="overflow-x: auto; margin-bottom: 2rem;">
+                        <table class="delice-table" id="tableStocuriCritice">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Ingredient</th>
+                                    <th>Stoc Curent</th>
+                                    <th>Prag Minim</th>
+                                    <th>Unitate</th>
+                                    <th>Stare</th>
+                                    <th>Acțiune</th>
+                                </tr>
+                            </thead>
+                            <tbody><!-- Dinamic --></tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="font-serif" style="margin-bottom: 1rem; color: var(--warning);">⏳ 1.3. Loturi Urgente (Termen de Expirare ≤ 7 Zile)</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="delice-table" id="tableLoturiUrgente">
+                            <thead>
+                                <tr>
+                                    <th>ID Lot</th>
+                                    <th>Ingredient</th>
+                                    <th>Cantitate Rămasă</th>
+                                    <th>Data Expirării</th>
+                                    <th>Furnizor</th>
+                                </tr>
+                            </thead>
+                            <tbody><!-- Dinamic --></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sub-panou 2: Catalog Stocuri & Loturi FEFO -->
+                <div id="adminSubCatalog" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 class="font-serif">Algoritmul FEFO – Loturi Active Ordonate după Expirare</h3>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="delice-table" id="tableLoturiFEFO">
+                            <thead>
+                                <tr>
+                                    <th>ID Lot</th>
+                                    <th>Ingredient</th>
+                                    <th>Cantitate Disponibilă</th>
+                                    <th>Data Recepției</th>
+                                    <th>Data Expirării (FEFO)</th>
+                                    <th>Furnizor</th>
+                                </tr>
+                            </thead>
+                            <tbody><!-- Dinamic --></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sub-panou 3: Aprobare Rețete AI -->
+                <div id="adminSubAI" style="display: none;">
+                    <h3 class="font-serif" style="margin-bottom: 1rem;">Rețete Asistate de AI în Stadiul de Verificare / Ciornă</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem;">
+                        Rețetele generate de AI și verificate de cofetari. Prin aprobare și atribuirea unui preț de vânzare, rețeta devine automat <strong>Produs Activ</strong> în catalogul vânzătorilor!
+                    </p>
+                    <div style="overflow-x: auto;">
+                        <table class="delice-table" id="tableReteteAIAdmin">
+                            <thead>
+                                <tr>
+                                    <th>ID Rețetă</th>
+                                    <th>Denumire Desert Propus</th>
+                                    <th>Porții Bază</th>
+                                    <th>Cofetar Solicitant</th>
+                                    <th>Ingrediente Trimise</th>
+                                    <th>Stadiu</th>
+                                    <th>Data Generării</th>
+                                    <th>Aprobare & Setare Preț</th>
+                                </tr>
+                            </thead>
+                            <tbody><!-- Dinamic --></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Sub-panou 4: Rapoarte & Interogări Complexe (queries.sql) -->
+                <div id="adminSubRapoarte" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                        <!-- Raport 4.1: Top produse -->
+                        <div class="card-delice" style="margin-bottom: 0;">
+                            <h4 class="font-serif" style="margin-bottom: 0.8rem;">🏆 4.1. Top Cele Mai Vândute Produse</h4>
+                            <table class="delice-table" id="tableTopProduse">
+                                <thead>
+                                    <tr><th>Produs</th><th>Bucăți Vândute</th><th>Încasări Totale</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Raport 4.3: Clienti fideli HAVING > 200 lei -->
+                        <div class="card-delice" style="margin-bottom: 0;">
+                            <h4 class="font-serif" style="margin-bottom: 0.8rem;">💎 4.3. Clienți Fideli (Total > 200 lei - HAVING)</h4>
+                            <table class="delice-table" id="tableClientiFideli">
+                                <thead>
+                                    <tr><th>Client</th><th>Telefon</th><th>Nr. Comenzi</th><th>Total Cheltuit</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <!-- Raport 4.4: Produse peste media de pret -->
+                        <div class="card-delice" style="margin-bottom: 0;">
+                            <h4 class="font-serif" style="margin-bottom: 0.8rem;">📈 4.4. Produse cu Preț Peste Media Catalogului</h4>
+                            <div id="textPretMediu" style="font-size: 0.85rem; color: var(--primary); font-weight: 600; margin-bottom: 0.5rem;"></div>
+                            <table class="delice-table" id="tablePesteMedie">
+                                <thead>
+                                    <tr><th>Produs</th><th>Preț Vânzare</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <!-- Raport 3.2: Incarcare cofetari -->
+                        <div class="card-delice" style="margin-bottom: 0;">
+                            <h4 class="font-serif" style="margin-bottom: 0.8rem;">👨‍🍳 3.2. Încărcare Cofetari (Sarcini în Lucru)</h4>
+                            <table class="delice-table" id="tableIncarcareCofetari">
+                                <thead>
+                                    <tr><th>Cofetar</th><th>Sarcini Active</th></tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================================================
+             2. ECRAN COFETAR: TABLOU PRODUCȚIE ZILNICĂ, SCALARE & ASISTENT AI
+             ================================================================ -->
+        <section id="cofetarView" class="view-section">
+            <div class="page-intro-header">
+                <div>
+                    <h2 class="page-intro-title font-serif">Laboratorul Cofetarului</h2>
+                    <p class="page-intro-desc">Organizarea producției zilnice, scalarea automată a cantităților, consum FEFO și asistent AI împotriva risipei.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="nav-pill-btn active" id="btnCofetarSarcini" onclick="DeliceApp.switchCofetarTab('sarcini')">📋 Tabloul Zilei</button>
+                    <button class="nav-pill-btn" id="btnCofetarScalare" onclick="DeliceApp.switchCofetarTab('scalare')">⚖️ Scalare Rețetar</button>
+                    <button class="nav-pill-btn" id="btnCofetarAI" onclick="DeliceApp.switchCofetarTab('ai')">✨ Asistent Rețete AI</button>
+                </div>
+            </div>
+
+            <!-- Sub-panou 1: Sarcinile Zilei -->
+            <div id="cofetarSubSarcini">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                    <h3 class="font-serif">3.1. Tabloul de Producție al Zilei Curente</h3>
+                    <span class="badge-pill badge-info">Consum automat FEFO la Finalizare</span>
+                </div>
+                <div id="sarciniListContainer">
+                    <!-- Carduri de productie dinamice -->
+                </div>
+            </div>
+
+            <!-- Sub-panou 2: Scalare Rețete -->
+            <div id="cofetarSubScalare" style="display: none;">
+                <div class="card-delice">
+                    <h3 class="font-serif" style="margin-bottom: 0.5rem;">Scalarea Automată a Rețetei</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Formula din documentație: <code>cantitate_necesară = cantitate × porții_dorite / porții_bază</code>.
+                    </p>
+
+                    <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="form-label">Alege Rețeta:</label>
+                            <select id="scalerRecipeSelect" class="form-input" style="min-width: 250px;" onchange="DeliceApp.handleScaleRecipeChange()">
+                                <!-- Dinamic -->
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Număr Porții Dorite:</label>
+                            <div class="portions-stepper">
+                                <button type="button" class="stepper-btn" onclick="DeliceApp.adjustScalerPortions(-5)">-</button>
+                                <span class="stepper-display" id="scalerPortionsDisplay">10</span>
+                                <button type="button" class="stepper-btn" onclick="DeliceApp.adjustScalerPortions(5)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="delice-table" id="tableScalerResults">
+                            <thead>
+                                <tr>
+                                    <th>Ingredient</th>
+                                    <th>Cantitate per Porție Bază</th>
+                                    <th>Cantitate Scalată Necesară</th>
+                                    <th>Stoc Curent în Depozit</th>
+                                    <th>Fezabilitate Stoc</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-panou 3: Asistent Rețete AI -->
+            <div id="cofetarSubAI" style="display: none;">
+                <div class="card-delice">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
+                        <span style="font-size: 1.8rem;">🤖</span>
+                        <h3 class="font-serif">Asistent Inteligent de Rețete (Combaterea Risipei Alimentare)</h3>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+                        Alege ingredientele din loturile care riscă să expire sau combinații exotice. Sistemul caută mai întâi în rețetele existente din laborator; dacă nu există, solicită asistentului AI generarea unei rețete structurate noi.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label class="form-label">Ingrediente sugerate din loturile ce expiră curând:</label>
+                            <div id="aiExpiringIngredientsList" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px; background: #fff;">
+                                <!-- Checkbox-uri dinamice -->
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="aiCustomIngredients">Sau adaugă alte ingrediente dorite (separate prin virgulă):</label>
+                            <input type="text" id="aiCustomIngredients" class="form-input" placeholder="ex: fistic, ciocolată albă, zmeură">
+
+                            <label class="form-label" for="aiDessertType" style="margin-top: 1rem;">Tipul de desert dorit:</label>
+                            <select id="aiDessertType" class="form-input">
+                                <option value="tort aniversar artizanal">Tort Festiv / Aniversar</option>
+                                <option value="tartă fină cu cremă">Tartă Artizanală</option>
+                                <option value="eclere franțuzești">Ecler / Choux à la Crème</option>
+                                <option value="mousse fin la pahar">Mousse & Entremet Delicat</option>
+                            </select>
+
+                            <button type="button" class="btn-primary-delice" style="margin-top: 1.2rem;" onclick="DeliceApp.generateAIRecipe()">
+                                ✨ Generează Rețetă AI
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Rezultatul Rețetei AI -->
+                    <div id="aiResultCard" style="display: none; background: var(--primary-ultra-light); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 class="font-serif" id="aiRecipeTitle" style="font-size: 1.3rem; color: var(--primary);">Denumire Rețetă</h4>
+                            <span class="badge-pill badge-ai" id="aiSourceBadge">Generată AI (Ciornă)</span>
+                        </div>
+
+                        <div style="display: flex; gap: 20px; font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+                            <span>⏱️ Timp: <strong id="aiRecipeTime">45 min</strong></span>
+                            <span>🍽️ Porții bază: <strong id="aiRecipePortions">10</strong></span>
+                        </div>
+
+                        <h5 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Ingrediente și Dozaje:</h5>
+                        <ul id="aiRecipeIngredientsList" style="margin-left: 1.5rem; margin-bottom: 1.2rem; font-size: 0.9rem;"></ul>
+
+                        <h5 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Pași de preparare în laborator:</h5>
+                        <p id="aiRecipeInstructions" style="white-space: pre-line; font-size: 0.9rem; color: var(--text-main); margin-bottom: 1.5rem; line-height: 1.7;"></p>
+
+                        <!-- Mesaj explicit de salvare în baza de date -->
+                        <div class="alert-box alert-success" id="aiSaveNotification" style="margin-bottom: 1.2rem;">
+                            💾 <strong>Rețeta este salvată în baza de date în tabela RETETE (stare: ciornă) și GENERARI_AI!</strong><br>
+                            Pentru a deveni produs disponibil la vânzare pentru clienți, trimite-o spre verificare și aprobare la Administrator.
+                        </div>
+
+                        <div id="aiActionButtonsArea">
+                            <button type="button" class="btn-delice-sm btn-delice-success" id="btnSendRecipeVerify" onclick="DeliceApp.submitRecipeToVerify()">
+                                ✔️ Verifică & Trimite spre Aprobare la Administrator
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TABEL CU TOATE REȚETELE GENERATE DE AI SALVATE -->
+                    <div style="margin-top: 2.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4 class="font-serif" style="font-size: 1.2rem;">📖 Rețetele Mele Generate de AI (Istoric & Ciorne Salvate)</h4>
+                            <button class="btn-delice-sm btn-delice-outline" onclick="DeliceApp.loadCofetarAITable()">🔄 Reîmprospătează</button>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="delice-table" id="tableCofetarAIRecipes">
+                                <thead>
+                                    <tr>
+                                        <th>ID Rețetă</th>
+                                        <th>Denumire Desert</th>
+                                        <th>Porții</th>
+                                        <th>Ingrediente Trimise</th>
+                                        <th>Data Generării</th>
+                                        <th>Stadiu Flux</th>
+                                        <th>Acțiuni Disponibile</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================================================
+             3. ECRAN VÂNZĂTOR: POS TEJGHEA, COMENZI RAPIDE/CUSTOM & VERIFICARE STOC
+             ================================================================ -->
+        <section id="vanzatorView" class="view-section">
+            <div class="page-intro-header">
+                <div>
+                    <h2 class="page-intro-title font-serif">Punctul de Vânzare (Tejghea / POS)</h2>
+                    <p class="page-intro-desc">Identificare cumpărător după telefon, selecție produse active și verificare orientativă a stocurilor prin tranzacție atomica.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="nav-pill-btn active" id="btnPosVanzare" onclick="DeliceApp.switchVanzatorTab('pos')">🛒 Comandă Nouă</button>
+                    <button class="nav-pill-btn" id="btnPosIstoric" onclick="DeliceApp.switchVanzatorTab('istoric')">📜 Istoric Comenzi</button>
+                </div>
+            </div>
+
+            <!-- Sub-panou 1: POS Vanzare -->
+            <div id="vanzatorSubPos">
+                <div class="pos-grid">
+                    <!-- Partea Stângă: Client & Catalog Produse -->
+                    <div>
+                        <!-- Identificare Client -->
+                        <div class="card-delice" style="padding: 1.2rem; margin-bottom: 1.2rem;">
+                            <h4 class="font-serif" style="margin-bottom: 0.8rem; font-size: 1.1rem;">👤 Identificare Client (după Telefon)</h4>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="posClientPhone" class="form-input" placeholder="Introduceți nr. telefon (ex: 0744555666)" oninput="DeliceApp.handleClientSearch()">
+                                <input type="text" id="posClientName" class="form-input" placeholder="Nume client">
+                            </div>
+                            <div id="clientStatusBadge" style="margin-top: 6px; font-size: 0.8rem;"></div>
+                        </div>
+
+                        <!-- Catalog Produse Active -->
+                        <div class="card-delice" style="padding: 1.2rem;">
+                            <h4 class="font-serif" style="margin-bottom: 1rem; font-size: 1.1rem;">🍰 Catalog Deserturi Disponibile (activ = TRUE)</h4>
+                            <div class="products-catalog-grid" id="posProductsGrid">
+                                <!-- Populare dinamică produse -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Partea Dreaptă: Coș de Comandă & Detalii Personalizare -->
+                    <div>
+                        <div class="cart-summary-box">
+                            <h4 class="font-serif" style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+                                🛍️ Bon de Comandă
+                            </h4>
+
+                            <div id="cartItemsContainer">
+                                <p style="color: var(--text-muted); font-size: 0.88rem; text-align: center; padding: 2rem 0;">
+                                    Nu ați adăugat încă niciun produs. Apăsați pe prăjiturile din stânga!
+                                </p>
+                            </div>
+
+                            <div class="cart-total-banner">
+                                <span>Total de Plată:</span>
+                                <span id="cartTotalPrice" style="color: var(--primary);">0.00 lei</span>
+                            </div>
+
+                            <!-- Tip Comanda & Personalizare -->
+                            <div style="margin-bottom: 1rem;">
+                                <label class="form-label">Tip Comandă:</label>
+                                <select id="posOrderType" class="form-input" onchange="DeliceApp.handleOrderTypeChange()">
+                                    <option value="rapida">Comandă Rapidă (Tejghea)</option>
+                                    <option value="custom">Comandă Specială / Personalizată (Tort Custom)</option>
+                                </select>
+                            </div>
+
+                            <div id="posCustomFieldsArea" style="display: none; background: var(--primary-ultra-light); padding: 10px; border-radius: 8px; margin-bottom: 1rem;">
+                                <label class="form-label" for="posCustomText">Text Personalizat pe Tort:</label>
+                                <input type="text" id="posCustomText" class="form-input" placeholder="ex: La Mulți Ani Maria!">
+
+                                <label class="form-label" for="posCustomModel" style="margin-top: 0.6rem;">Model / Tematică Dorită:</label>
+                                <input type="text" id="posCustomModel" class="form-input" placeholder="ex: Flori pastel roz, glazură catifelată">
+
+                                <label class="form-label" for="posDeliveryDate" style="margin-top: 0.6rem;">Data și Ora Livrării:</label>
+                                <input type="datetime-local" id="posDeliveryDate" class="form-input">
+                            </div>
+
+                            <!-- Alerta de Stoc Tranzactional (daca ROLLBACK) -->
+                            <div id="posStockErrorAlert" style="display: none;" class="alert-box alert-danger"></div>
+
+                            <button type="button" class="btn-primary-delice" onclick="DeliceApp.submitOrder()">
+                                💳 Confirmă & Salvează Comanda
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-panou 2: Istoric Comenzi Vanzator -->
+            <div id="vanzatorSubIstoric" style="display: none;">
+                <div class="card-delice">
+                    <h3 class="font-serif" style="margin-bottom: 1rem;">Urmărire Comenzi & Stadiul Producției</h3>
+                    <div style="overflow-x: auto;">
+                        <table class="delice-table" id="tableOrdersHistory">
+                            <thead>
+                                <tr>
+                                    <th>ID Comandă</th>
+                                    <th>Data Livrare</th>
+                                    <th>Client</th>
+                                    <th>Tip</th>
+                                    <th>Detalii Personalizare</th>
+                                    <th>Stare Producție</th>
+                                    <th>Total (lei)</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ====================================================================
+         MODALE (POPUP-URI)
+         ==================================================================== -->
+    
+    <!-- Modal Receptie Lot Marfa (Admin) -->
+    <div class="modal-overlay" id="modalReceptie">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="font-serif">➕ Recepție Marfă de la Furnizor</h3>
+                <button class="modal-close-btn" onclick="DeliceApp.closeModal('modalReceptie')">&times;</button>
+            </div>
+            <form onsubmit="DeliceApp.handleReceptieSubmit(event)">
+                <div class="form-group">
+                    <label class="form-label">Ingredient:</label>
+                    <select id="recIngredient" class="form-input" required></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Furnizor:</label>
+                    <select id="recFurnizor" class="form-input" required></select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cantitate Recepționată:</label>
+                    <input type="number" id="recCantitate" class="form-input" step="0.001" min="0.001" placeholder="ex: 10.500" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Data Expirării Lotului:</label>
+                    <input type="date" id="recDataExp" class="form-input" required>
+                </div>
+                <button type="submit" class="btn-primary-delice">Salvează Lotul (Trigger Actualizare Stoc)</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Aprobare Reteta & Setare Pret (Admin) -->
+    <div class="modal-overlay" id="modalAprobaReteta">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="font-serif">✨ Aprobare Rețetă & Generare Produs Activ</h3>
+                <button class="modal-close-btn" onclick="DeliceApp.closeModal('modalAprobaReteta')">&times;</button>
+            </div>
+            <form onsubmit="DeliceApp.handleAprobaRetetaSubmit(event)">
+                <input type="hidden" id="aprobareIdReteta">
+                <div class="form-group">
+                    <label class="form-label">Desert:</label>
+                    <input type="text" id="aprobareDenumire" class="form-input" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Stabilește Prețul de Vânzare (RON):</label>
+                    <input type="number" id="aprobarePret" class="form-input" step="0.50" min="1" placeholder="ex: 85.00" required>
+                </div>
+                <button type="submit" class="btn-primary-delice">Aprobă și Activează Produsul la Vânzare</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js?v=2"></script>
+</body>
+</html>
